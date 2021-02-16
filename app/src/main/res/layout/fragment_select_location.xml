@@ -26,11 +26,8 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_save"
-            android:layout_width="0dp"
-            android:layout_height="?actionBarSize"
-            android:background="@color/colorAccent"
+            style="@style/btnStyle"
             android:text="@string/save"
-            android:textColor="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
