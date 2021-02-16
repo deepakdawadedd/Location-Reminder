@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -28,6 +27,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PointOfInterest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.nanodegree.locationreminder.BuildConfig
 import com.udacity.nanodegree.locationreminder.R
@@ -39,17 +39,17 @@ import com.udacity.nanodegree.locationreminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.*
 
-const val DEFAULT_ZOOM = 17f
-private const val LOCATION_PERMISSION_INDEX = 0
-private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
-private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 2
-private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 3
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     companion object {
         val TAG = SelectLocationFragment::class.java.simpleName
+        const val DEFAULT_ZOOM = 17f
+        private const val LOCATION_PERMISSION_INDEX = 0
+        private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
+        private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
+        private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 2
+        private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 3
     }
 
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
@@ -85,18 +85,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 //        TODO: add style to the map
 //        TODO: put a marker to location that the user selected
 
-
-        binding.btnSave.setOnClickListener {
-            onLocationSelected()
-        }
-
         return binding.root
     }
 
-    private fun onLocationSelected() {
+    private fun onLocationSelected(pointOfInterest: PointOfInterest) {
+        lastKnownLocation = pointOfInterest.latLng
         lastKnownLocation?.let {
             _viewModel.latitude.value = it.latitude
             _viewModel.longitude.value = it.longitude
+            _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
             _viewModel.navigationCommand.postValue(NavigationCommand.Back)
         }
         _viewModel.navigationCommand.postValue(NavigationCommand.Back)
@@ -138,10 +135,27 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         map = gooleMap
 
         foregroundAndBackgroundLocationPermission()
-
+        zoomToDeviceLocation()
         setMapStyle()
         setMapLongClick()
         setPoiClick()
+        map?.let { addMapClick(it) }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun zoomToDeviceLocation() {
+        fusedLocationProviderClient?.lastLocation?.addOnSuccessListener(requireActivity()) { location ->
+            if (location != null) {
+                val userLatLng = LatLng(location.latitude, location.longitude)
+                val zoomLevel = 15f
+                map?.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        userLatLng,
+                        zoomLevel
+                    )
+                )
+            }
+        }
     }
 
 
@@ -187,8 +201,29 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    private fun addMapClick(map: GoogleMap) {
+        map.setOnMapClickListener {
+            binding.btnSave.setOnClickListener { view ->
+                _viewModel.latitude.value = it.latitude
+                _viewModel.longitude.value = it.longitude
+                _viewModel.reminderSelectedLocationStr.value = "Custom location used"
+                _viewModel.navigationCommand.postValue(NavigationCommand.Back)
+            }
+
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(it, 15f)
+            map.moveCamera(cameraUpdate)
+            val poiMarker = map.addMarker(MarkerOptions().position(it))
+            poiMarker.showInfoWindow()
+        }
+
+    }
+
+
     private fun setPoiClick() {
         map?.setOnPoiClickListener { poi ->
+            binding.btnSave.setOnClickListener {
+                onLocationSelected(poi)
+            }
             val poiMarker = map?.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
