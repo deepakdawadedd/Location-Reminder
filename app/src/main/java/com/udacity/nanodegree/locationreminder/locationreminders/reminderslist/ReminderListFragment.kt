@@ -1,9 +1,12 @@
 package com.udacity.nanodegree.locationreminder.locationreminders.reminderslist
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import com.google.firebase.auth.FirebaseAuth
 import com.udacity.nanodegree.locationreminder.R
+import com.udacity.nanodegree.locationreminder.authentication.AuthenticationActivity
 import com.udacity.nanodegree.locationreminder.base.BaseFragment
 import com.udacity.nanodegree.locationreminder.base.NavigationCommand
 import com.udacity.nanodegree.locationreminder.databinding.FragmentRemindersBinding
@@ -71,7 +74,8 @@ class ReminderListFragment : BaseFragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.logout -> {
-//                TODO: add the logout implementation
+                FirebaseAuth.getInstance().signOut()
+                launchAuthenticationActivity()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -83,5 +87,11 @@ class ReminderListFragment : BaseFragment() {
 //        display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
     }
+
+    private fun launchAuthenticationActivity() {
+        val i = Intent(activity, AuthenticationActivity::class.java)
+        startActivity(i)
+    }
+
 
 }
