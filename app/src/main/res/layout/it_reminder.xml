@@ -22,39 +22,42 @@
             android:layout_height="wrap_content"
             android:padding="@dimen/padding_medium">
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/padding_small"
                 android:layout_marginLeft="@dimen/padding_small"
                 android:text="@{item.title}"
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_normal"
+                app:layout_constraintEnd_toStartOf="@id/selectedLocation"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Title" />
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/description"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="@{item.description}"
                 android:textSize="@dimen/text_size_small"
                 app:layout_constraintStart_toStartOf="@id/title"
+                app:layout_constraintEnd_toEndOf="@id/title"
                 app:layout_constraintTop_toBottomOf="@id/title"
                 tools:text="Description" />
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/selectedLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="@{item.location}"
                 android:textColor="@color/colorAccent"
                 android:textSize="@dimen/text_size_small"
-                app:layout_constraintBottom_toBottomOf="@+id/description"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/title"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="Location" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
