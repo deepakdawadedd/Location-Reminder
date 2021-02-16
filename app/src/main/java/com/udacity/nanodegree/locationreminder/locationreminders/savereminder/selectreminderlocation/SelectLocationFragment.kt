@@ -32,6 +32,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.udacity.nanodegree.locationreminder.BuildConfig
 import com.udacity.nanodegree.locationreminder.R
 import com.udacity.nanodegree.locationreminder.base.BaseFragment
+import com.udacity.nanodegree.locationreminder.base.NavigationCommand
 import com.udacity.nanodegree.locationreminder.databinding.FragmentSelectLocationBinding
 import com.udacity.nanodegree.locationreminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.nanodegree.locationreminder.utils.setDisplayHomeAsUpEnabled
@@ -49,11 +50,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     companion object {
         val TAG = SelectLocationFragment::class.java.simpleName
-        val DEFAULT_LOCATION_LATLNG = LatLng(27.2038, 77.5011)
     }
 
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
-    private var lastKnownLocation: Location? = null
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
@@ -62,6 +61,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var map: GoogleMap? = null
     private val runningQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+
+    private var lastKnownLocation: LatLng? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -85,16 +86,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 //        TODO: put a marker to location that the user selected
 
 
-//        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
+        binding.btnSave.setOnClickListener {
+            onLocationSelected()
+        }
 
         return binding.root
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
+        lastKnownLocation?.let {
+            _viewModel.latitude.value = it.latitude
+            _viewModel.longitude.value = it.longitude
+            _viewModel.navigationCommand.postValue(NavigationCommand.Back)
+        }
+        _viewModel.navigationCommand.postValue(NavigationCommand.Back)
+
     }
 
 
@@ -153,6 +159,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 .title(getString(R.string.dropped_pin))
                 .snippet(snippet)
         )
+        lastKnownLocation = latLng
+
     }
 
     private fun setMapStyle() {
