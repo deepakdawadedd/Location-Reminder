@@ -55,11 +55,12 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/fragment_save_reminder_location"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginRight="@dimen/margin_normal"
             android:text="@{viewModel.reminderSelectedLocationStr}"
             android:textColor="@color/black"
+            android:gravity="center"
             app:layout_constraintWidth_percent="0.4"
             android:ellipsize="end"
             app:layout_constraintHorizontal_bias="1.0"
