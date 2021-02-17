@@ -23,26 +23,25 @@ class AuthenticationActivity : AppCompatActivity() {
         val TAG = AuthenticationActivity::class.java.simpleName
         const val SIGN_IN_CODE = 1
     }
+
     private lateinit var binding: ActivityAuthenticationBinding
     private val viewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this,R.layout.activity_authentication)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_authentication)
+
+        binding.login.setOnClickListener {
+            launchSignInFlow()
+        }
 
         viewModel.authenticationState.observe(this) { authenticationState ->
-            if (authenticationState == LoginViewModel.AuthenticationState.UNAUTHENTICATED) {
-                binding.login.setOnClickListener {
-                    launchSignInFlow()
-                }
-
-            } else if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
-                binding.login.setOnClickListener {
-                    startRemindersActivity()
-                }
+            if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
+                startRemindersActivity()
             }
         }
     }
+
     private fun launchSignInFlow() {
         val providers =
             arrayListOf(
@@ -63,15 +62,13 @@ class AuthenticationActivity : AppCompatActivity() {
         if (requestCode == SIGN_IN_CODE) {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == Activity.RESULT_OK) {
-                Log.i("onActivityResult","Successfully Signed in")
                 startRemindersActivity()
             } else {
                 if (response == null) {
-                    Log.i("onActivityResult","Back button pressed")
                     return
                 }
                 if (response.error?.errorCode == ErrorCodes.NO_NETWORK) {
-                    Log.i("onActivityResult","No Network")
+                    Log.e(TAG, "No Network", response.error)
                 }
 
             }
