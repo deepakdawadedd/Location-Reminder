@@ -14,6 +14,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -62,7 +63,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private val runningQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
-    private var lastKnownLocation: LatLng? = null
+    var reminderSelectedLocationStr =""
+    lateinit var selectedPOI: PointOfInterest
+    var latitude = 0.0
+    var longitude = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -80,23 +84,24 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         readyMap()
 
-//        TODO: add the map setup implementation
-//        TODO: zoom to the user location after taking his permission
-//        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
+        binding.btnSave.setOnClickListener {
+            if (reminderSelectedLocationStr != "") {
+                onLocationSelected()
+            }
+            else
+                _viewModel.showToast.value = "You must select location"
+        }
+
 
         return binding.root
     }
 
-    private fun onLocationSelected(pointOfInterest: PointOfInterest) {
-        lastKnownLocation = pointOfInterest.latLng
-        lastKnownLocation?.let {
-            _viewModel.latitude.value = it.latitude
-            _viewModel.longitude.value = it.longitude
-            _viewModel.reminderSelectedLocationStr.value = pointOfInterest.name
-            _viewModel.navigationCommand.postValue(NavigationCommand.Back)
-        }
-        _viewModel.navigationCommand.postValue(NavigationCommand.Back)
+    private fun onLocationSelected() {
+        _viewModel.reminderSelectedLocationStr.value = reminderSelectedLocationStr
+        _viewModel.selectedPOI.value = selectedPOI
+        _viewModel.latitude.value = latitude
+        _viewModel.longitude.value = longitude
+        _viewModel.navigationCommand.value = NavigationCommand.Back
 
     }
 
@@ -106,7 +111,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        // TODO: Change the map type based on the user's selection.
         R.id.normal_map -> {
             map?.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
@@ -173,7 +177,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 .title(getString(R.string.dropped_pin))
                 .snippet(snippet)
         )
-        lastKnownLocation = latLng
+        reminderSelectedLocationStr = latLng.toString()
+        selectedPOI = PointOfInterest(latLng,"","Custom Location")
+        latitude = latLng.latitude
+        longitude = latLng.longitude
 
     }
 
@@ -221,15 +228,17 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setPoiClick() {
         map?.setOnPoiClickListener { poi ->
-            binding.btnSave.setOnClickListener {
-                onLocationSelected(poi)
-            }
+            map?.clear()
             val poiMarker = map?.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
             )
             poiMarker?.showInfoWindow()
+            reminderSelectedLocationStr = poi.name
+            selectedPOI = poi
+            latitude = poi.latLng.latitude
+            longitude = poi.latLng.longitude
         }
     }
 
@@ -309,6 +318,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
                 map?.isMyLocationEnabled = true
+                zoomToDeviceLocation()
             }
         }
     }

@@ -92,7 +92,7 @@ class SaveReminderFragment : BaseFragment() {
     private fun addGeofenceForClue(reminder: ReminderDTO) {
         val geofence = Geofence.Builder()
             .setRequestId(reminder.id)
-            .setCircularRegion(reminder.latitude!!, reminder.longitude!!, 100f)
+            .setCircularRegion(reminder.latitude?:0.0, reminder.longitude?:0.0, 100f)
             .setExpirationDuration(TimeUnit.HOURS.toMillis(1))
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .build()
