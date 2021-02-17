@@ -36,33 +36,32 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     /**
      * Validate the entered data then saves the reminder data to the DataSource
      */
-    fun validateAndSaveReminder(reminderData: ReminderDataItem): ReminderDTO? {
-        return if (validateEnteredData(reminderData))
+    fun validateAndSaveReminder(reminderData: ReminderDataItem) {
+        if (validateEnteredData(reminderData)) {
             saveReminder(reminderData)
-        else null
+        }
     }
 
     /**
      * Save the reminder to the data source
      */
-    fun saveReminder(reminderData: ReminderDataItem): ReminderDTO {
+    fun saveReminder(reminderData: ReminderDataItem) {
         showLoading.value = true
-        val reminder = ReminderDTO(
-            reminderData.title,
-            reminderData.description,
-            reminderData.location,
-            reminderData.latitude,
-            reminderData.longitude,
-            reminderData.id
-        )
-
         viewModelScope.launch {
-            dataSource.saveReminder(reminder)
+            dataSource.saveReminder(
+                ReminderDTO(
+                    reminderData.title,
+                    reminderData.description,
+                    reminderData.location,
+                    reminderData.latitude,
+                    reminderData.longitude,
+                    reminderData.id
+                )
+            )
             showLoading.value = false
             showToast.value = app.getString(R.string.reminder_saved)
             navigationCommand.value = NavigationCommand.Back
         }
-        return reminder
     }
 
     /**
