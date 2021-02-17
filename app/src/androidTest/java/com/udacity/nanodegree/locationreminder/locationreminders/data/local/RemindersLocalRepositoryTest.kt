@@ -11,8 +11,8 @@ import com.udacity.nanodegree.locationreminder.locationreminders.data.dto.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.*
+import org.hamcrest.MatcherAssert.*
 import org.hamcrest.Matchers
 import org.junit.After
 import org.junit.Before
@@ -25,23 +25,26 @@ import org.junit.runner.RunWith
 @MediumTest
 class RemindersLocalRepositoryTest {
 
-    @get:Rule
-    var mainCoroutineRule = MainAndroidTestCoroutineRule()
+    @get:Rule var mainCoroutineRule = MainAndroidTestCoroutineRule()
 
-    @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
+    @get:Rule var instantExecutorRule = InstantTaskExecutorRule()
+
     private lateinit var database: RemindersDatabase
+
     private lateinit var remindersDAO: RemindersDao
+
     private lateinit var repository: RemindersLocalRepository
 
+    /**
+     * initializes database so the information stored here will clear when the process was killed.
+     */
     @Before
-    fun setup() {
+    fun initialSetup() {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             RemindersDatabase::class.java
-        )
-            .allowMainThreadQueries()
-            .build()
+        ).allowMainThreadQueries().build()
+
         remindersDAO = database.reminderDao()
         repository =
             RemindersLocalRepository(
@@ -50,54 +53,56 @@ class RemindersLocalRepositoryTest {
             )
     }
 
+    /**
+     * this will close the database if open
+     * */
     @After
-    fun closeDB() {
-        database.close()
-    }
+    fun closeDataBase() = database.close()
 
-    @Test
-    fun saveReminderAndGetByID() = mainCoroutineRule.runBlockingTest {
+    @Test //WHEN: saving data in db, THEN: retrieving saved data, RESULT: retrieved data matches with saved data
+    fun saveReminder_getReminderById_existInDB() = mainCoroutineRule.runBlockingTest {
         val reminder = ReminderDTO(
-            title = "Basketball",
-            description = "Don't get crossed up or dunked on!",
-            location = "B-Ball Court",
-            latitude = 75.1234,
-            longitude = 3333.1234
+            title = "FootBall",
+            description = "Upcoming football match at town",
+            location = "chinna swammy stadium",
+            latitude = 1099.19,
+            longitude = 1299.14
         )
         repository.saveReminder(reminder)
         val reminderLoaded = repository.getReminder(reminder.id) as Success<ReminderDTO>
-        val loaded = reminderLoaded.data
-
-        MatcherAssert.assertThat(loaded, Matchers.notNullValue())
-        MatcherAssert.assertThat(loaded.id, CoreMatchers.`is`(reminder.id))
-        MatcherAssert.assertThat(loaded.description, CoreMatchers.`is`(reminder.description))
-        MatcherAssert.assertThat(loaded.location, CoreMatchers.`is`(reminder.location))
-        MatcherAssert.assertThat(loaded.latitude, CoreMatchers.`is`(reminder.latitude))
-        MatcherAssert.assertThat(loaded.longitude, CoreMatchers.`is`(reminder.longitude))
+        val reminderDTO = reminderLoaded.data
+        reminderDTO.apply {
+            assertThat(this, Matchers.notNullValue())
+            assertThat(id, `is`(reminder.id))
+            assertThat(description, `is`(reminder.description))
+            assertThat(location, `is`(reminder.location))
+            assertThat(latitude, `is`(reminder.latitude))
+            assertThat(longitude, `is`(reminder.longitude))
+        }
     }
 
-    @Test
-    fun deleteAllRemindersAndReminders() = mainCoroutineRule.runBlockingTest {
+    @Test //WHEN: deleting all data from database, THEN: getting data, RESULT: showing data is Empty
+    fun deleteAllReminders_getReminder_dataIsEmpty() = mainCoroutineRule.runBlockingTest {
         val reminder = ReminderDTO(
-            title = "Basketball",
-            description = "Don't get crossed up or dunked on!",
-            location = "B-Ball Court",
-            latitude = 75.1234,
-            longitude = 3333.1234
+            title = "FootBall",
+            description = "Upcoming football match at town",
+            location = "chinna swammy stadium",
+            latitude = 1099.19,
+            longitude = 1299.14
         )
         repository.saveReminder(reminder)
         repository.deleteAllReminders()
-        val reminders =
-            repository.getReminders() as Success<List<ReminderDTO>>
-        val data = reminders.data
-        MatcherAssert.assertThat(data.isEmpty(), CoreMatchers.`is`(true))
+        val reminders= repository.getReminders() as Success<List<ReminderDTO>>
+        val isEmpty = reminders.data.isEmpty()
+        assertThat(isEmpty, `is`(true))
 
     }
 
     @Test
-    fun noRemindersFoundGetReminderById() = mainCoroutineRule.runBlockingTest {
-        val reminder = repository.getReminder("3") as Error
-        MatcherAssert.assertThat(reminder.message, Matchers.notNullValue())
-        MatcherAssert.assertThat(reminder.message, CoreMatchers.`is`("Reminder not found!"))
+    fun getReminderById_noRemindersFound_message() = mainCoroutineRule.runBlockingTest {
+        val reminder = repository.getReminder("random id") as Error
+        val message = reminder.message
+        assertThat(message, Matchers.notNullValue())
+        assertThat(message, `is`("Reminder not found!"))
     }
 }

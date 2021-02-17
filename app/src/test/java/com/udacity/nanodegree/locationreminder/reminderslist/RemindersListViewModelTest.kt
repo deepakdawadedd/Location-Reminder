@@ -42,7 +42,7 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun check_loading() = mainCoroutineRule.runBlockingTest {
+    fun check_loading_status() = mainCoroutineRule.runBlockingTest {
         mainCoroutineRule.pauseDispatcher()
         remindersListViewModel.loadReminders()
         MatcherAssert.assertThat(
@@ -52,17 +52,7 @@ class RemindersListViewModelTest {
         mainCoroutineRule.resumeDispatcher()
         MatcherAssert.assertThat(
             remindersListViewModel.showLoading.getOrAwaitValue(),
-            Matchers.`is`(false)k
-        )
-    }
-
-    @Test
-    fun shouldReturnError() = mainCoroutineRule.runBlockingTest {
-        datasource.setReturnError(true)
-        remindersListViewModel.loadReminders()
-        MatcherAssert.assertThat(
-            remindersListViewModel.showSnackBar.getOrAwaitValue(),
-            Matchers.`is`("Test Exception")
+            Matchers.`is`(false)
         )
     }
 }

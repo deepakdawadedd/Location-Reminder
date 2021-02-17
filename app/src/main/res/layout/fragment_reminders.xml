@@ -11,18 +11,19 @@
     </data>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refreshLayout"
+        android:id="@+id/reminder_fragment_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:context=".locationreminders.reminderslist.ReminderListFragment">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/reminder_fragment_contraint_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/white">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/reminderssRecyclerView"
+                android:id="@+id/reminder_fragment_reminders_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:liveData="@{viewModel.remindersList}"
@@ -32,7 +33,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/noDataTextView"
+                android:id="@+id/reminder_fragment_no_reminder"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:drawableTopCompat="@drawable/ic_no_data"
@@ -46,7 +47,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ProgressBar
-                android:id="@+id/progressBar"
+                android:id="@+id/reminder_fragment_progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fadeVisible="@{viewModel.showLoading.booleanValue()}"
@@ -57,13 +58,13 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/addReminderFAB"
+                android:id="@+id/reminders_fragment_add_reminder_fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_normal"
                 android:src="@drawable/ic_add"
                 app:fabSize="normal"
-                app:layout_anchor="@id/reminderssRecyclerView"
+                app:layout_anchor="@id/reminder_fragment_reminders_list"
                 app:layout_anchorGravity="bottom|right|end"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />

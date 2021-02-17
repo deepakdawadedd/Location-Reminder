@@ -124,7 +124,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun setupGoogleMap() {
-        val mapFragment = childFragmentManager.findFragmentById(R.id.mapView) as SupportMapFragment
+        val mapFragment = childFragmentManager.findFragmentById(R.id.select_location_fragment_map_view) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
 

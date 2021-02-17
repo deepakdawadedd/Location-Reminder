@@ -12,8 +12,8 @@ import com.udacity.nanodegree.locationreminder.locationreminders.reminderslist.R
 import com.udacity.nanodegree.locationreminder.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,57 +31,63 @@ class SaveReminderViewModelTest {
 
     @get: Rule
     var mainCoroutineRule = MainCoroutineRule()
+
     private lateinit var saveReminderViewModel: SaveReminderViewModel
-    private lateinit var datasource: FakeDataSource
+
+    private lateinit var fakeDataSource: FakeDataSource
 
     @Before
-    fun setUp() {
+    fun init() {
         stopKoin()
-        datasource = FakeDataSource()
-        saveReminderViewModel =
-            SaveReminderViewModel(ApplicationProvider.getApplicationContext(), datasource)
+        fakeDataSource = FakeDataSource()
+        saveReminderViewModel = SaveReminderViewModel(
+            ApplicationProvider.getApplicationContext(),
+            fakeDataSource
+        )
 
     }
 
 
     @Test
-    fun check_loading() = mainCoroutineRule.runBlockingTest {
+    fun check_loading_status() = mainCoroutineRule.runBlockingTest {
         mainCoroutineRule.pauseDispatcher()
         val reminderDataItem = ReminderDataItem(
-            "Test Reminder",
-            "Test Description",
+            "Testing title of reminder",
+            "This is a demo Description for testing",
             "Test Location",
             0.0,
             0.0
         )
-        saveReminderViewModel.saveReminder(
-            reminderDataItem
+        saveReminderViewModel.saveReminder(reminderDataItem)
+        var loadingStatus = saveReminderViewModel.showLoading.getOrAwaitValue()
+        assertThat(
+            loadingStatus,
+            `is`(true)
         )
-        MatcherAssert.assertThat(
-            saveReminderViewModel.showLoading.getOrAwaitValue(),
-            CoreMatchers.`is`(true)
-        )
+
         mainCoroutineRule.resumeDispatcher()
-        MatcherAssert.assertThat(
-            saveReminderViewModel.showLoading.getOrAwaitValue(),
-            CoreMatchers.`is`(false)
+        loadingStatus = saveReminderViewModel.showLoading.getOrAwaitValue()
+        assertThat(
+            loadingStatus,
+            `is`(false)
         )
     }
 
     @Test
-    fun shouldReturnError() = mainCoroutineRule.runBlockingTest {
+    fun returnError() = mainCoroutineRule.runBlockingTest {
         val reminderDataItem = ReminderDataItem(
-            "",
-            "Test Description",
-            "Test Location",
+            "Testing title of reminder",
+            "This is a  Description for testing",
+            "Test",
             0.0,
             0.0
         )
-        val isDataValid = saveReminderViewModel.validateEnteredData(reminderDataItem)
-        MatcherAssert.assertThat(isDataValid, CoreMatchers.`is`(false))
-        MatcherAssert.assertThat(
-            saveReminderViewModel.showSnackBarInt.getOrAwaitValue(),
-            CoreMatchers.`is`(R.string.err_enter_title)
+        val valid = saveReminderViewModel.validateEnteredData(reminderDataItem)
+        assertThat(valid, `is`(false))
+        val snackBarMessage = saveReminderViewModel.showSnackBarInt.getOrAwaitValue()
+        assertThat(
+            snackBarMessage,
+            `is`(R.string.err_enter_title)
         )
     }
 }

@@ -1,4 +1,4 @@
-package com.udacity.nanodegree.locationreminder.data
+package com.udacity.nanodegree.locationreminder.locationreminders
 
 import com.udacity.nanodegree.locationreminder.locationreminders.data.ReminderDataSource
 import com.udacity.nanodegree.locationreminder.locationreminders.data.dto.ReminderDTO
@@ -6,6 +6,7 @@ import com.udacity.nanodegree.locationreminder.locationreminders.data.dto.Result
 
 class FakeDataSource(var reminders: MutableList<ReminderDTO>? = mutableListOf()) :
     ReminderDataSource {
+
 
     override suspend fun getReminders(): Result<List<ReminderDTO>> = reminders?.let {
         Result.Success(ArrayList(it))

@@ -13,13 +13,16 @@ import org.junit.runner.Description
 class MainCoroutineRule (private val dispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher()):
         TestWatcher(),
         TestCoroutineScope by TestCoroutineScope(dispatcher) {
+
     override fun starting(description: Description?) {
         super.starting(description)
+        // setting main dispatcher
         Dispatchers.setMain(dispatcher)
     }
 
     override fun finished(description: Description?) {
         super.finished(description)
+        // Clean Test coroutine and reset it to main
         cleanupTestCoroutines()
         Dispatchers.resetMain()
     }
