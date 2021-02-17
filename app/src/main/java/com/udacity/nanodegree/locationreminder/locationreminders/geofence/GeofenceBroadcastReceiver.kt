@@ -22,7 +22,7 @@ import com.udacity.nanodegree.locationreminder.locationreminders.savereminder.Sa
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
     companion object {
-        val TAG = GeofenceBroadcastReceiver::class.java.simpleName
+        val TAG: String = GeofenceBroadcastReceiver::class.java.simpleName
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -30,24 +30,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         if (intent.action == SaveReminderFragment.ACTION_GEOFENCE_EVENT) {
             val geoFencingEvent = GeofencingEvent.fromIntent(intent)
 
-            if (geoFencingEvent.hasError()) {
-                val errorMessage =
-                    context.getString(R.string.error_adding_geofence)
-                Log.e(TAG, errorMessage)
-                return
-            }
-
-            if (geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                Log.v(TAG, context.getString(R.string.geofence_entered))
-                when {
-                    geoFencingEvent.triggeringGeofences.isNotEmpty() ->
-                        GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
-                    else -> {
-                        Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
-                        return
-                    }
-                }
-            }
+            if (geoFencingEvent.hasError()) return
+            if (geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER && geoFencingEvent.triggeringGeofences.isNotEmpty())
+                GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
         }
 
     }
