@@ -54,14 +54,18 @@
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/fragment_save_reminder_location"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginRight="@dimen/margin_normal"
             android:text="@{viewModel.reminderSelectedLocationStr}"
             android:textColor="@color/black"
+            app:layout_constraintWidth_percent="0.4"
+            android:ellipsize="end"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintBottom_toBottomOf="@id/fragment_save_reminder_select_location"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/fragment_save_reminder_select_location"
             tools:text="Location" />
 

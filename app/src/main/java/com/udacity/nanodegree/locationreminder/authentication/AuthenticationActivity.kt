@@ -66,5 +66,6 @@ class AuthenticationActivity : AppCompatActivity() {
     private fun startRemindersActivity() {
         val intent = Intent(this, RemindersActivity::class.java)
         startActivity(intent)
+        finish()
     }
 }

@@ -91,6 +91,7 @@ class ReminderListFragment : BaseFragment() {
     private fun launchAuthenticationActivity() {
         val i = Intent(activity, AuthenticationActivity::class.java)
         startActivity(i)
+        requireActivity().finish()
     }
 
 
