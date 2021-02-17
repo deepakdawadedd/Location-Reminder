@@ -34,15 +34,12 @@ class SaveReminderViewModelTest {
 
     private lateinit var saveReminderViewModel: SaveReminderViewModel
 
-    private lateinit var fakeDataSource: FakeDataSource
-
     @Before
     fun init() {
         stopKoin()
-        fakeDataSource = FakeDataSource()
         saveReminderViewModel = SaveReminderViewModel(
             ApplicationProvider.getApplicationContext(),
-            fakeDataSource
+            FakeDataSource()
         )
 
     }
