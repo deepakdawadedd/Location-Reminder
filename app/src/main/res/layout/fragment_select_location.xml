@@ -15,17 +15,17 @@
         android:layout_height="match_parent">
 
         <fragment
-            android:id="@+id/map"
+            android:id="@+id/mapView"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/btn_save"
+            app:layout_constraintBottom_toTopOf="@id/select_location_fragment_save_location"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_save"
+            android:id="@+id/select_location_fragment_save_location"
             style="@style/btnStyle"
             android:text="@string/save"
             app:layout_constraintBottom_toBottomOf="parent"

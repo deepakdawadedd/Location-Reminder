@@ -7,15 +7,12 @@ import androidx.lifecycle.map
 class LoginViewModel : ViewModel() {
 
     enum class AuthenticationState {
-        AUTHENTICATED, UNAUTHENTICATED
+        AUTHENTICATE, UNAUTHENTICATED
     }
 
     val authenticationState = FirebaseUserLiveData().map { user ->
-        if (user != null) {
-            AuthenticationState.AUTHENTICATED
-        } else {
-            AuthenticationState.UNAUTHENTICATED
-        }
+        if (user != null) AuthenticationState.AUTHENTICATE
+        else AuthenticationState.UNAUTHENTICATED
     }
 
 }

@@ -3,18 +3,13 @@ package com.udacity.nanodegree.locationreminder.locationreminders.savereminder.s
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
-import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -30,7 +25,6 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PointOfInterest
 import com.google.android.material.snackbar.Snackbar
-import com.udacity.nanodegree.locationreminder.BuildConfig
 import com.udacity.nanodegree.locationreminder.R
 import com.udacity.nanodegree.locationreminder.base.BaseFragment
 import com.udacity.nanodegree.locationreminder.base.NavigationCommand
@@ -44,7 +38,7 @@ import java.util.*
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     companion object {
-        val TAG = SelectLocationFragment::class.java.simpleName
+        val TAG: String = SelectLocationFragment::class.java.simpleName
         const val DEFAULT_ZOOM = 17f
         private const val LOCATION_PERMISSION_INDEX = 0
         private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
@@ -59,11 +53,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
 
-    private var map: GoogleMap? = null
-    private val runningQOrLater =
+    private var googleMap: GoogleMap? = null
+    private val runningOnQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
-    var reminderSelectedLocationStr =""
+    var reminderSelectedLocationStr = ""
     lateinit var selectedPOI: PointOfInterest
     var latitude = 0.0
     var longitude = 0.0
@@ -82,13 +76,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        readyMap()
+        setupGoogleMap()
 
-        binding.btnSave.setOnClickListener {
+        binding.selectLocationFragmentSaveLocation.setOnClickListener {
             if (reminderSelectedLocationStr != "") {
                 onLocationSelected()
-            }
-            else
+            } else
                 _viewModel.showToast.value = "You must select location"
         }
 
@@ -112,49 +105,49 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.normal_map -> {
-            map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+            googleMap?.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
         }
         R.id.hybrid_map -> {
-            map?.mapType = GoogleMap.MAP_TYPE_HYBRID
+            googleMap?.mapType = GoogleMap.MAP_TYPE_HYBRID
             true
         }
         R.id.satellite_map -> {
-            map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
+            googleMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
             true
         }
         R.id.terrain_map -> {
-            map?.mapType = GoogleMap.MAP_TYPE_TERRAIN
+            googleMap?.mapType = GoogleMap.MAP_TYPE_TERRAIN
             true
         }
         else -> super.onOptionsItemSelected(item)
     }
 
-    private fun readyMap() {
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+    private fun setupGoogleMap() {
+        val mapFragment = childFragmentManager.findFragmentById(R.id.mapView) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
 
-    override fun onMapReady(gooleMap: GoogleMap?) {
-        map = gooleMap
+    override fun onMapReady(googleMap: GoogleMap?) {
+        this.googleMap = googleMap
 
-        foregroundAndBackgroundLocationPermission()
-        zoomToDeviceLocation()
+        askForegroundBackgroundLocationPermission()
+        zoomToUserLocation()
         setMapStyle()
-        setMapLongClick()
-        setPoiClick()
-        map?.let { addMapClick(it) }
+        setMapLongClickListener()
+        setOnPoiClickListener()
+
     }
 
     @SuppressLint("MissingPermission")
-    fun zoomToDeviceLocation() {
-        fusedLocationProviderClient?.lastLocation?.addOnSuccessListener(requireActivity()) { location ->
-            if (location != null) {
-                val userLatLng = LatLng(location.latitude, location.longitude)
-                val zoomLevel = 15f
-                map?.moveCamera(
+    fun zoomToUserLocation() {
+        fusedLocationProviderClient?.lastLocation?.addOnSuccessListener(requireActivity()) {
+            it?.let { location ->
+                val latLng = LatLng(location.latitude, location.longitude)
+                val zoomLevel = DEFAULT_ZOOM
+                googleMap?.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
-                        userLatLng,
+                        latLng,
                         zoomLevel
                     )
                 )
@@ -171,14 +164,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             latLng.longitude
         )
 
-        this.map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
-        this.map?.addMarker(
+        this.googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
+        this.googleMap?.addMarker(
             MarkerOptions().position(latLng)
                 .title(getString(R.string.dropped_pin))
                 .snippet(snippet)
         )
         reminderSelectedLocationStr = latLng.toString()
-        selectedPOI = PointOfInterest(latLng,"","Custom Location")
+        selectedPOI = PointOfInterest(latLng, reminderSelectedLocationStr, "Custom Location")
         latitude = latLng.latitude
         longitude = latLng.longitude
 
@@ -186,50 +179,28 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setMapStyle() {
         try {
-            val success = map?.setMapStyle(
+            googleMap?.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
-                    activity,
-                    R.raw.map_style
+                    requireActivity(),
+                    R.raw.google_map_style
                 )
-            ) ?: false
-
-            if (!success) {
-                Log.e(TAG, "Style parsing failed.")
-            }
+            )
         } catch (e: Resources.NotFoundException) {
-            Log.e(TAG, "Can't find style. Error: ", e)
+
         }
     }
 
 
-    private fun setMapLongClick() {
-        this.map?.setOnMapLongClickListener { latLng ->
+    private fun setMapLongClickListener() {
+        this.googleMap?.setOnMapLongClickListener { latLng ->
             addMarker(latLng)
         }
     }
 
-    private fun addMapClick(map: GoogleMap) {
-        map.setOnMapClickListener {
-            binding.btnSave.setOnClickListener { view ->
-                _viewModel.latitude.value = it.latitude
-                _viewModel.longitude.value = it.longitude
-                _viewModel.reminderSelectedLocationStr.value = "Custom location used"
-                _viewModel.navigationCommand.postValue(NavigationCommand.Back)
-            }
-
-            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(it, 15f)
-            map.moveCamera(cameraUpdate)
-            val poiMarker = map.addMarker(MarkerOptions().position(it))
-            poiMarker.showInfoWindow()
-        }
-
-    }
-
-
-    private fun setPoiClick() {
-        map?.setOnPoiClickListener { poi ->
-            map?.clear()
-            val poiMarker = map?.addMarker(
+    private fun setOnPoiClickListener() {
+        googleMap?.setOnPoiClickListener { poi ->
+            googleMap?.clear()
+            val poiMarker = googleMap?.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
@@ -242,20 +213,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    @TargetApi(29)
-    private fun foregroundAndBackgroundLocationPermission() {
-        if (foregroundAndBackgroundLocationPermissionApproved()) {
-            checkDeviceLocationSettingsAndStartGeofence()
-        }
+    private fun askForegroundBackgroundLocationPermission() {
+        if (foregroundAndBackgroundLocationPermissionApproved()) checkLocationAndStartGeoFence()
         var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val resultCode = when {
-            runningQOrLater -> {
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-            }
-            else ->
-                REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        }
+        val resultCode = if (runningOnQOrLater) {
+            permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
+        } else REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         ActivityCompat.requestPermissions(
             requireActivity(),
             permissionsArray,
@@ -269,57 +233,49 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
             ))
         val backgroundLocationApproved =
-            if (runningQOrLater) {
-
+            if (runningOnQOrLater)
                 PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                )
-            } else {
-                true
-            }
+                ) else true
         return foregroundLocationApproved && backgroundLocationApproved
     }
 
 
     @SuppressLint("MissingPermission")
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
+    private fun checkLocationAndStartGeoFence(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
         val settingsClient = LocationServices.getSettingsClient(requireActivity())
-        val locationSettingsResponseTask =
+        val settingsResponseTask =
             settingsClient.checkLocationSettings(builder.build())
-        locationSettingsResponseTask.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException && resolve) {
-                try {
-                    startIntentSenderForResult(
-                        exception.resolution.intentSender,
-                        REQUEST_TURN_DEVICE_LOCATION_ON,
-                        null,
-                        0,
-                        0,
-                        0,
-                        null
-                    )
-                } catch (sendEx: IntentSender.SendIntentException) {
+        settingsResponseTask.addOnCompleteListener {
+            if (it.isSuccessful) {
+                googleMap?.isMyLocationEnabled = true
+                zoomToUserLocation()
+            }
+        }.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException && resolve) try {
+                startIntentSenderForResult(
+                    exception.resolution.intentSender,
+                    REQUEST_TURN_DEVICE_LOCATION_ON,
+                    null,
+                    0,
+                    0,
+                    0,
+                    null
+                )
+            } catch (sendEx: IntentSender.SendIntentException) {
 
-                }
-            } else {
+            } else
                 Snackbar.make(
                     binding.rootLayout,
                     R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
                 ).setAction(android.R.string.ok) {
-                    checkDeviceLocationSettingsAndStartGeofence()
+                    checkLocationAndStartGeoFence()
                 }.show()
-            }
-        }
-        locationSettingsResponseTask.addOnCompleteListener {
-            if (it.isSuccessful) {
-                map?.isMyLocationEnabled = true
-                zoomToDeviceLocation()
-            }
         }
     }
 
@@ -332,24 +288,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             || (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
                     grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
                     PackageManager.PERMISSION_DENIED)
-        ) {
-            Snackbar.make(
-                binding.rootLayout,
-                R.string.permission_denied_explanation,
-                Snackbar.LENGTH_INDEFINITE
-            ).setAction(R.string.settings) {
-                startActivity(Intent().apply {
-                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                })
-            }.show()
-        } else checkDeviceLocationSettingsAndStartGeofence()
+        ) _viewModel.showSnackBarInt.value = R.string.permission_denied_explanation
+        else checkLocationAndStartGeoFence()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
-            checkDeviceLocationSettingsAndStartGeofence(false)
+            checkLocationAndStartGeoFence(false)
         }
     }
 
