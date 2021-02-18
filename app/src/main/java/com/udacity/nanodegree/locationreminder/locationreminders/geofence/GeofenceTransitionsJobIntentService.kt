@@ -44,9 +44,8 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        val requestId = if (triggeringGeofences.isNotEmpty())
-            triggeringGeofences[0].requestId
-        else return
+        val requestId =
+            if (triggeringGeofences.isNotEmpty()) triggeringGeofences[0].requestId else return
 
         if (requestId.isNullOrEmpty()) return
         //Get the local repository instance

@@ -7,6 +7,7 @@ import android.util.Log
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import com.udacity.nanodegree.locationreminder.R
+import com.udacity.nanodegree.locationreminder.locationreminders.geofence.GeofenceTransitionsJobIntentService.Companion.enqueueWork
 import com.udacity.nanodegree.locationreminder.locationreminders.savereminder.SaveReminderFragment
 
 /**
@@ -26,14 +27,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-
-        if (intent.action == SaveReminderFragment.ACTION_GEOFENCE_EVENT) {
-            val geoFencingEvent = GeofencingEvent.fromIntent(intent)
-
-            if (geoFencingEvent.hasError()) return
-            if (geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER && geoFencingEvent.triggeringGeofences.isNotEmpty())
-                GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
-        }
-
+        enqueueWork(context, intent)
     }
+
 }

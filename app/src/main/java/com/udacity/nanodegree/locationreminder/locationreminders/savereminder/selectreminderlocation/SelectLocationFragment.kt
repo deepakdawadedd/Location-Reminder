@@ -220,8 +220,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
             REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
         } else REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        ActivityCompat.requestPermissions(
-            requireActivity(),
+        requestPermissions(
             permissionsArray,
             resultCode
         )
@@ -284,6 +283,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults.isEmpty() || grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
             || (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
                     grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
