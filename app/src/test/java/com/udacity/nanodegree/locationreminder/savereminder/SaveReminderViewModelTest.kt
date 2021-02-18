@@ -55,6 +55,7 @@ class SaveReminderViewModelTest {
             0.0,
             0.0
         )
+
         saveReminderViewModel.saveReminder(reminderDataItem)
         var loadingStatus = saveReminderViewModel.showLoading.getOrAwaitValue()
         assertThat(
@@ -75,7 +76,7 @@ class SaveReminderViewModelTest {
         val reminderDataItem = ReminderDataItem(
             "Testing title of reminder",
             "This is a  Description for testing",
-            "Test",
+            "",
             0.0,
             0.0
         )
@@ -84,7 +85,7 @@ class SaveReminderViewModelTest {
         val snackBarMessage = saveReminderViewModel.showSnackBarInt.getOrAwaitValue()
         assertThat(
             snackBarMessage,
-            `is`(R.string.err_enter_title)
+            `is`(R.string.err_select_location)
         )
     }
 }
