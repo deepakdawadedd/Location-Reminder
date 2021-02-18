@@ -79,7 +79,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setupGoogleMap()
 
         binding.selectLocationFragmentSaveLocation.setOnClickListener {
-            if (reminderSelectedLocationStr != "") {
+            if (reminderSelectedLocationStr.isNotBlank()) {
                 onLocationSelected()
             } else
                 _viewModel.showToast.value = "You must select location"
@@ -124,7 +124,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun setupGoogleMap() {
-        val mapFragment = childFragmentManager.findFragmentById(R.id.select_location_fragment_map_view) as SupportMapFragment
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.select_location_fragment_map_view) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
 
@@ -136,7 +137,29 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapStyle()
         setMapLongClickListener()
         setOnPoiClickListener()
+        setOnMyLocationClickListener()
 
+    }
+
+    private fun setOnMyLocationClickListener() {
+        googleMap?.setOnMyLocationButtonClickListener {
+            val location = googleMap?.myLocation ?: return@setOnMyLocationButtonClickListener false
+            val latLng = LatLng(location.latitude, location.longitude)
+            updateCurrentLocation(latLng)
+            return@setOnMyLocationButtonClickListener true
+        }
+
+        googleMap?.setOnMyLocationClickListener { location ->
+            val latLng = LatLng(location.latitude, location.longitude)
+            updateCurrentLocation(latLng)
+        }
+    }
+
+    private fun updateCurrentLocation(latLng: LatLng) {
+        reminderSelectedLocationStr = latLng.toString()
+        selectedPOI = PointOfInterest(latLng, reminderSelectedLocationStr, "Current Location")
+        latitude = latLng.latitude
+        longitude = latLng.longitude
     }
 
     @SuppressLint("MissingPermission")
