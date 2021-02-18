@@ -15,6 +15,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.nanodegree.locationreminder.R
 import com.udacity.nanodegree.locationreminder.locationreminders.FakeDataSource
+import com.udacity.nanodegree.locationreminder.locationreminders.data.ReminderDataSource
 import com.udacity.nanodegree.locationreminder.locationreminders.data.dto.ReminderDTO
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -44,14 +45,18 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
 
     @Before
     fun init() {
-        stopKoin()
         fakeDataSource = FakeDataSource()
         reminderListViewModel = RemindersListViewModel(
             ApplicationProvider.getApplicationContext(),
-            fakeDataSource
+            fakeDataSource as ReminderDataSource
         )
+
+        stopKoin()
+
         val myModule = module {
-            reminderListViewModel
+            single {
+                reminderListViewModel
+            }
         }
         startKoin {
             modules(listOf(myModule))
@@ -97,7 +102,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
     fun remindersList_noReminder_ErrorSnackBarShown() = runBlockingTest {
         fakeDataSource.deleteAllReminders()
         launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
-        onView(withText("No reminders found"))
+        onView(withText("No Data"))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
