@@ -38,14 +38,16 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     override fun onHandleWork(intent: Intent) {
         val geoFencingEvent = GeofencingEvent.fromIntent(intent)
         if (geoFencingEvent.hasError()) return
-        if (geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL)
+        if (geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
+            geoFencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL)
             sendNotification(geoFencingEvent.triggeringGeofences)
 
     }
 
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        val requestId =
-            if (triggeringGeofences.isNotEmpty()) triggeringGeofences[0].requestId else return
+        val requestId = if (triggeringGeofences.isNotEmpty())
+            triggeringGeofences[0].requestId
+        else return
 
         if (requestId.isNullOrEmpty()) return
         //Get the local repository instance
