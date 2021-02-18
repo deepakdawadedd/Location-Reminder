@@ -10,8 +10,8 @@ import com.udacity.nanodegree.locationreminder.getOrAwaitValue
 import com.udacity.nanodegree.locationreminder.locationreminders.reminderslist.RemindersListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.MatcherAssert
-import org.hamcrest.Matchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.`is`
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,14 +30,15 @@ class RemindersListViewModelTest {
     @get: Rule
     var mainCoroutineRule = MainCoroutineRule()
     private lateinit var remindersListViewModel: RemindersListViewModel
-    private lateinit var datasource: FakeDataSource
 
     @Before
     fun setUp() {
         stopKoin()
-        datasource = FakeDataSource()
-        remindersListViewModel =
-            RemindersListViewModel(ApplicationProvider.getApplicationContext(), datasource)
+
+        remindersListViewModel = RemindersListViewModel(
+                ApplicationProvider.getApplicationContext(),
+                FakeDataSource()
+            )
 
     }
 
@@ -45,14 +46,16 @@ class RemindersListViewModelTest {
     fun check_loading_status() = mainCoroutineRule.runBlockingTest {
         mainCoroutineRule.pauseDispatcher()
         remindersListViewModel.loadReminders()
-        MatcherAssert.assertThat(
-            remindersListViewModel.showLoading.getOrAwaitValue(),
-            Matchers.`is`(true)
+        var loading = remindersListViewModel.showLoading.getOrAwaitValue()
+        assertThat(
+            loading,
+            `is`(true)
         )
         mainCoroutineRule.resumeDispatcher()
-        MatcherAssert.assertThat(
-            remindersListViewModel.showLoading.getOrAwaitValue(),
-            Matchers.`is`(false)
+        loading = remindersListViewModel.showLoading.getOrAwaitValue()
+        assertThat(
+            loading,
+            `is`(false)
         )
     }
 }
